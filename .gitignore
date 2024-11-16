@@ -1,2 +1,4 @@
 /.bica
 /logs
+/src/__pycache__
+/src/apikey.txt

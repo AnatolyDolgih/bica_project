@@ -1,9 +1,11 @@
 import numpy as np
+from oai_interface import Interface
 
 class BaseMoralScheme():
-    def __init__(self, init_state):
+    def __init__(self):
         print(f"moral scheme ctor")
-        self.cur_state = init_state
+        self.interface = Interface()
+        
     
     def update_state(self, cur_impact):
         self.cur_state += cur_impact
