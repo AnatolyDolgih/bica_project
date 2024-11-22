@@ -1,4 +1,8 @@
+from logger import clearLog
 import baseMoralScheme as bms
+import  virtualTutor as vt
 
 if __name__ == "__main__":
-    moral_scheme = bms.BaseMoralScheme()
+    clearLog()
+    tutor = vt.VirtualTutor()
+    tutor.start()
