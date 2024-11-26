@@ -31,8 +31,8 @@ class BaseMoralScheme():
         
         self.max_time = 2
         # timer to exit when speaking more than max_time
-        self.timer = threading.Timer(self.max_time, self.stop_timer)
-        self.timer.start()
+        # self.timer = threading.Timer(self.max_time, self.stop_timer)
+        # self.timer.start()
 
         # interface to communicate with ChatGPT
         self.interface = Interface()
