@@ -2,7 +2,7 @@
 # сервер должен по полученной реплике сгенерировать ответ 
 # виртуального тьютора
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 import request_contracts as rc
 import virtual_tutor as vt
 
@@ -12,6 +12,11 @@ actor = vt.VirualTutor()
 @app.get("/")
 def process_root():
     return {"message" : "Virtual Tutor project v1.0"}
+
+
+@app.websocket("/ws")
+def process_websocket():
+    
 
 # Обработка текста и выдача ответа
 @app.post("/getAnswer")
