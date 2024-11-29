@@ -1,12 +1,28 @@
 import numpy as np
 import helper as hlp
+import logging
 from base_moral_scheme import BaseMoralScheme
 from oai_interface import Interface
+
+def create_logger(logger_name, log_file):
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.INFO)
+    handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
+    formatter = logging.Formatter("%(asctime)s | %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
 
 class DummyVirtualTutor:
     def __init__(self):
         self.messages = [ {"role": "system", "content": hlp.start_promt_dvt} ]
         self.oai_interface = Interface()
+        self.logger_dialog = create_logger("dialog_logger", "../../logs/dialog.log")
+        self.logger_essay = create_logger("essay_logger", "../../logs/essay.log")
+        
+        self.logger_dialog.info("This is dialog log")
+        self.logger_essay.info("This is essay log")
+        print("ctor")
 
     def generate_answer(self, replic):
         self.messages.append({"role": "user", "content": replic})
@@ -25,7 +41,6 @@ class VirtualTutor:
         self.cur_moral_id = 0
         self.messages = [ {"role": "assistant", "content": hlp.start_promt} ]
         self.schemes = [False, False, False]
-        pass
 
     def generate_answer(self, replic):
         print(f'Сх: {self.schemes}') #Выводим состояние моральных схем
