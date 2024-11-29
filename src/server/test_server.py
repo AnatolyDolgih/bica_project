@@ -20,15 +20,17 @@ actor = DummyVirtualTutor()
 
 @app.post("/essay")
 def read_essay(item: EssayItem):
-    print(f"get: {item.message}")
     user_replic = item.message # реплика пользователя
-    actor_replic = actor.generate_answer(user_replic) # генерируем реплику тьютора
-    return {"message" : "Hello"}
+    actor.logger_essay.info(user_replic)
+    actor_replic = "<Actor reply>"#actor.generate_answer(user_replic) # генерируем реплику тьютора
+    return {"message" : actor_replic}
 
 @app.post("/dialog")
 def read_dialog(item: DialogItem):
     user_replic = item.message # реплика пользователя
-    actor_replic = actor.generate_answer(user_replic) # генерируем реплику тьютора
-    return {"message" : "Рудд"}
+    actor.logger_dialog.info(f"User: {user_replic}")
+    actor_replic = "<Actor reply>"#actor.generate_answer(user_replic) # генерируем реплику тьютора
+    actor.logger_dialog.info(f"Virtual tutor: {actor_replic}")
+    return {"message" : actor_replic}
 
 app.mount("/", StaticFilesWithoutCaching(directory="../ui", html=True), name="static")
