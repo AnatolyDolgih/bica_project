@@ -90,9 +90,11 @@ class Interface:
             'model': 'gpt-4o',
             'messages': messages,
         }
-
         response = requests.post(url=self.url, headers=self.header, json=body)
-        reply = json.loads(response.json())["choices"][0]["message"]["content"]
+        if response.ok:
+            reply = json.loads(response.json())["choices"][0]["message"]["content"]
+        else:
+            reply = "Не удалось связаться с сервером"
         return reply
 
 # class Interface:

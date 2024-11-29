@@ -1,3 +1,16 @@
+const client_id = Date.now()
+let web_socket = new WebSocket(`ws://bica-project.tw1.ru/test/ws/${client_id}`);
+
+web_socket.onopen = () => {
+    console.log('WebSocket Connection established');
+};
+
+web_socket.onmessage = (event) => {
+    const response = JSON.parse(event.data);
+    console.log(response)
+    addMessage(response.content, false);
+};
+
 const dialogEditor = document.getElementById('dialogEditor');
 const essayEditor = document.getElementById('essayEditor');
 const chatMessages = document.getElementById('chatMessages');
@@ -18,25 +31,15 @@ async function submitDialog() {
     dialogEditor.value = '';
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/dialog', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: message
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        if (web_socket.readyState === WebSocket.OPEN) {
+            const data_dialog = {
+                type: 'chat',
+                content: message,
+                timestamp: new Date().toISOString()
+            };
+            web_socket.send(JSON.stringify(data_dialog));
+            console.log(data_dialog.content)
         }
-        
-        const data = await response.json();
-        // Simulate tutor response
-        console.log(data)
-        addMessage(data.message, false);
-        //showSaveAnimation(dialogEditor);
     } catch (error) {
         console.error('Error submitting dialog:', error);
         alert('Error submitting dialog. Please try again.');
@@ -45,24 +48,15 @@ async function submitDialog() {
     
 async function submitEssay() {
     try {
-        const response = await fetch("http://127.0.0.1:8000/essay", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: essayEditor.value
-            })
-        });
-        console.log(essayEditor.value)
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        if (web_socket.readyState === WebSocket.OPEN) {
+            const data_essay = {
+                type: 'essay',
+                content: essayEditor.value,
+                timestamp: new Date().toISOString()
+            };
+            web_socket.send(JSON.stringify(data_essay));
+            console.log(data_essay.content)
         }
-        
-        const data = await response.json();
-        //showSaveAnimation(essayEditor);
-        console.log('Essay submitted successfully:', data);
-        addMessage(data.message, false);
     } catch (error) {
         console.error('Error submitting essay:', error);
         alert('Error submitting essay. Please try again.');
@@ -76,13 +70,10 @@ function showSaveAnimation(element) {
     }, 1000);
 }
     
-// Load saved content on page load
 window.addEventListener('load', () => {
-    // Add welcome message
     addMessage('Здравствуйте! Я ваш виртуальный тьютор. Чем могу помочь?', false);
 });
     
-// Handle Enter key in dialog
 dialogEditor.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
