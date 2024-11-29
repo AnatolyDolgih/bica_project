@@ -51,10 +51,10 @@ async function submitEssay() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                essay: "Hello"//essayEditor.value
+                message: essayEditor.value
             })
         });
-        
+        console.log(essayEditor.value)
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -62,6 +62,7 @@ async function submitEssay() {
         const data = await response.json();
         //showSaveAnimation(essayEditor);
         console.log('Essay submitted successfully:', data);
+        addMessage(data.message, false);
     } catch (error) {
         console.error('Error submitting essay:', error);
         alert('Error submitting essay. Please try again.');
