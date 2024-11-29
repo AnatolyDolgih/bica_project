@@ -67,7 +67,6 @@
     margin-left: auto;
     max-width: 80%;
     overflow: hidden;
-    resize: none;
   }
   
   .message.tutor {
@@ -75,6 +74,7 @@
     color: var(--primary);
     margin-right: auto;
     max-width: 80%;
+    overflow: hidden;
   }
   
   .editor-label {

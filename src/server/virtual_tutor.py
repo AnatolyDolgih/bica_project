@@ -1,24 +1,28 @@
 import numpy as np
 import helper as hlp
 import logging
+from pathlib import Path
+import os
 from base_moral_scheme import BaseMoralScheme
 from oai_interface import Interface
 
-def create_logger(logger_name, log_file):
+def create_logger(logger_name, log_dir, log_file):
+    Path(log_dir).mkdir(parents=True, exist_ok=True)    
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.INFO)
-    handler = logging.FileHandler(log_file, mode='w', encoding='utf-8')
+    handler = logging.FileHandler(os.path.join(log_dir, log_file), mode='w', encoding='utf-8')
     formatter = logging.Formatter("%(asctime)s | %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
 
 class DummyVirtualTutor:
-    def __init__(self):
+    def __init__(self, id):
+        self.client_id = id
         self.messages = [ {"role": "system", "content": hlp.start_promt_dvt} ]
         self.oai_interface = Interface()
-        self.logger_dialog = create_logger("dialog_logger", "../../logs/dialog.log")
-        self.logger_essay = create_logger("essay_logger", "../../logs/essay.log")
+        self.logger_dialog = create_logger(f"dialog_logger_{self.client_id}", f"../../logs/{self.client_id}", "dialog.log")
+        self.logger_essay = create_logger(f"essay_logger_{self.client_id}", f"../../logs/{self.client_id}", "essay.log")
         
         self.logger_dialog.info("This is dialog log")
         self.logger_essay.info("This is essay log")
