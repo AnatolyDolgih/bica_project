@@ -1,3 +1,14 @@
+import os 
+import pathlib
+import yaml 
+
+def load_config():
+    conf_path = os.path.join(pathlib.Path(__file__).parent.parent.absolute(), "config.yaml")
+    config = "" 
+    with open(conf_path, 'r') as conf_file:
+        config = yaml.load(conf_file, Loader=yaml.FullLoader)
+    return config
+
 first_space = {
     0: 'нежелание поддерживать разговор',
     1: 'активная попытка разговорить собеседника',

@@ -1,0 +1,24 @@
+auth:
+  url: "https://www.bicaai2023.org/openai/v1/chat/completions"
+  token: "x_cTiM9n_TLr80E85jjr4fSm4OfTTL8m3GyG_UOvoRLf7ajZDKvpEMgTDsQtacRwjoniI3qfaUKpJ-2lOEFY1g"
+
+# Run mode:
+# "local" - run on local server
+# "server" - run on server
+run_mode: "local"
+
+running:
+  local:
+    # local host
+    host: "127.0.0.1"
+    # local port
+    port: 8000
+    
+
+  server:
+    # server host
+    host: "0.0.0.0"
+    # server port
+    port: 5000
+    # root for ws
+    ws_root: "ws://bica-project.tw1.ru"

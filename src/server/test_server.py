@@ -1,10 +1,11 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-import json
+from pydantic import BaseModel, TypeAdapter
 from pydantic.tools import parse_obj_as
 from virtual_tutor import VirtualTutor, DummyVirtualTutor
+import helper as hlp
 import uvicorn
+import json
 
 # убираем кэширование файлов, а то плохо выходит
 class StaticFilesWithoutCaching(StaticFiles):
@@ -42,7 +43,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data) 
-            data_model = parse_obj_as(WssItem, data_dict)
+            data_model = TypeAdapter(WssItem).validate_python(data_dict)
             actor_replic = virtual_tutor.generate_answer(data_model.content)
             
             if data_model.type == 'chat':
@@ -62,4 +63,10 @@ app.mount("/test", StaticFilesWithoutCaching(directory="../ui", html=True), name
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    config = hlp.load_config()
+    if config["run_mode"] == "local":
+        uvicorn.run("test_server:app", host=config["running"]["local"]["host"], 
+                    port=config["running"]["local"]["port"], reload=True)
+    else:
+        uvicorn.run("test_server:app", host=config["running"]["server"]["host"], 
+                    port=config["running"]["server"]["port"])
