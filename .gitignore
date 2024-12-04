@@ -5,3 +5,4 @@
 /src/test_client.py
 /src/test_server.py
 /src/server/__pycache__
+/src/config.yaml
