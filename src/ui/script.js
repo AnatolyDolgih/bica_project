@@ -1,5 +1,7 @@
 const client_id = Date.now()
-let web_socket = new WebSocket(`ws://bica-project.tw1.ru/test/ws/${client_id}`);
+
+let web_socket = new WebSocket(`ws://127.0.0.1:8000/test/ws/${client_id}`);
+// let web_socket = new WebSocket(`ws://bica-project.tw1.ru/test/ws/${client_id}`);
 
 web_socket.onopen = () => {
     console.log('WebSocket Connection established');

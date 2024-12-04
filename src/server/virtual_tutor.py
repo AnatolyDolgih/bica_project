@@ -26,8 +26,7 @@ class DummyVirtualTutor:
         
         self.logger_dialog.info("This is dialog log")
         self.logger_essay.info("This is essay log")
-        print("ctor")
-
+        
     def generate_answer(self, replic):
         self.messages.append({"role": "user", "content": replic})
         tutor_response = self.oai_interface.get_dummy_replic(self.messages)
@@ -64,48 +63,3 @@ class VirtualTutor:
         self.messages.append({"role": "user", "content": replic}) #обновляем историю диалога
         self.messages.append({"role": "assistant", "content": reply}) #обновляем историю диалога       
         return reply
-
-
-# class VirtualTutor():
-#     def __init__(self):
-#         # Моральные схемы: хранятся списоком, пока будет 4 штуки
-#         self.moral_list = [bms.BaseMoralScheme(x, hlp.ms_1_greetings) for x in range(4)]
-#         self.cur_ms = self.moral_list[0]
-
-#         logger_name = "virtual_tutor"
-#         self.logger = logging.getLogger(logger_name)
-#         self.logger.setLevel(logging.INFO)
-
-#         self.handler = logging.FileHandler(f"{logger_name}.log", mode='w')
-#         self.formatter = logging.Formatter("%(name)s %(asctime)s %(levelname)s %(message)s")
-
-#         self.handler.setFormatter(self.formatter)
-#         self.logger.addHandler(self.handler)
-#         self.logger.info(f"test logger {logger_name}")
-#         string = os.environ["TUTOR_FORT"]
-#         self.logger.info(f"TUTOR_FORT: {string}")
-
-#     def generate_answer(self, replic):
-#         self.logger.info(f"User: {replic}")
-        
-#         # добавили в моральную схему разложение фразы по базисным 
-#         # векторам семантического пространства 
-#         self.cur_ms.add_action_vector(replic)
-        
-#         # пересчитали значение appraisals и feelings
-#         self.cur_ms.update_vectors()
-
-
-#         reply = self.cur_ms.generate_answer()
-#         if self.cur_ms.criteria():
-#             # переход на другую моральную схему
-#             self.cur_ms = self.cur_ms
-        
-#         return reply
-
-#     def generate_emotion(self):
-#         pass
-
-
-# if __name__ == "__main__":
-#     actor = VirtualTutor()
