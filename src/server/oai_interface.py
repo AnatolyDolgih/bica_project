@@ -44,33 +44,47 @@ class Interface:
         }
 
         response = requests.post(url=self.url, headers=self.header, json=body)
-        reply = json.loads(response.json())["choices"][0]["message"]["content"]
-        return self.clear_intetions(reply)
+        if response.ok:
+            reply = json.loads(response.json())["choices"][0]["message"]["content"]
+        else:
+            reply = "Не удалось связаться с сервером"
+        return reply
 
     def get_replic(self, last_message, messages, intens_dict, feelings, 
                    prev_scheme, current_scheme):
-        cat_str = ', '.join(intens_dict.values())
-        num = len(intens_dict.values())
-        cat_list = list(intens_dict.values())
-        prob_int_list = ', '.join(f'{label}: {value}' for label, value in zip(cat_list, feelings))
+       
+        rlt = [(intens_dict[i if val > -0.05 else -i], val) for i, val in enumerate(feelings, start=1)]
+        student_profile = '''Характеристика студента: \n'''
+
+# Перечисляем элементы
+        for idx, (dict_value, list_value) in enumerate(rlt, start=1):
+            fnt = f"Студент {dict_value}\n"
+            student_profile += fnt
+   
+    
+        for idx, (dict_value, list_value) in enumerate(rlt, start=1):
+            if list_value < -0.05:
+                mov = f"Студент оказался {dict_value}. Необходимо окрасить свой ответ так, чтобы это поспособствовало положительной смене этой характеристики"   
+                student_profile += mov
+
         changed_message = f'''Последняя реплика человека:{last_message}.
-            Сгенерируй фразу - ответ на последнюю реплику человека, в которой содержались бы речевые интенции со следующей вероятностью: {prob_int_list}.
-            Если у интенции вероятность от 0 до 0.25, то она не проявляется в речи человека,
-            если вероятность от 0.25 до 0.5, то она практически не проявляется в речи человека,
-            если вероятность от 0.5 до 0.75, то она косвенно проявляется в репликах человека (не конкретными словами и фразами, а общим настроением)
-            если вероятность от 0.75 до 1, то она интенция заметна в речи человека.
-            Фраза должна быть не более 20 слов в длину
-            Фраза должна содержать не более одного утвердительного предложения или не более одного вопросительного предложения
+            Сгенерируй фразу - ответ на последнюю реплику человека
             Фраза должна быть адекватным и логичным ответом к последней реплике человека.
             Фраза должна быть уместной в контексте всей истории диалога.
             Фраза не должна содержать никакой информации об этапах диалога
-            Выведи только новую реплику
+            Выведи только новую реплику.
+            Ты должен поменять свой ответ с учетом характеристики студента: {student_profile}
+            Параметры по переходам между этапами:
             '''
 
         if current_scheme-prev_scheme == 1 and current_scheme == 2:
-            changed_message = hlp.from1to2 + changed_message
-        elif current_scheme-prev_scheme == 1 and current_scheme == 3:
-            changed_message = hlp.from2to3 + changed_message
+            changed_message =  changed_message + hlp.from1to2 
+        elif current_scheme-prev_scheme == 2 and current_scheme == 3:
+            changed_message =  changed_message + hlp.from2to3
+        elif current_scheme-prev_scheme == 3 and current_scheme == 4:
+            changed_message =  changed_message + hlp.from3to4
+        elif current_scheme == prev_scheme:
+            changed_message =  changed_message + f"Вы находитесь на {current_scheme+1} этапе. Переходить пока не нужно" 
 
         messages_opt = list(messages)
         messages_opt.append({"role": "user", "content": changed_message})
@@ -81,7 +95,10 @@ class Interface:
         }
 
         response = requests.post(url=self.url, headers=self.header, json=body)
-        reply = json.loads(response.json())["choices"][0]["message"]["content"]
+        if response.ok:
+            reply = json.loads(response.json())["choices"][0]["message"]["content"]
+        else:
+            reply = "Не удалось связаться с сервером"
         return reply
 
     def get_dummy_replic(self, messages):
@@ -89,6 +106,48 @@ class Interface:
             'model': 'gpt-4o',
             'messages': messages,
         }
+        response = requests.post(url=self.url, headers=self.header, json=body)
+        if response.ok:
+            reply = json.loads(response.json())["choices"][0]["message"]["content"]
+        else:
+            reply = "Не удалось связаться с сервером"
+        return reply
+
+
+    def get_brain_status(self, messages, last_message,  current_scheme):
+        changed_message =""
+        if current_scheme == 0:
+          changed_message = f'''Последняя реплика человека:{last_message}.
+            Сейчас ты находишься на первом этапе диалога. Вы общаетесь со студентом и условие перехода на следующий этап - получено формальное согласие студента начать занятие.
+            Оцени по последнему сообщению было ли получено это  согласие. В ответе выведи только "да" или "нет" в зависимости от выполнения условия
+            '''
+
+        elif current_scheme == 1:
+          changed_message = f'''Последняя реплика человека:{last_message}.
+            Сейчас ты находишься на втором этапе. Сейчас вы работаете на написанием outline. 
+            Проверь по последнему сообщению - является ли оно написанным студентом outline.
+            Исключение: если последнее сообщение все-таки является написанным outline, но сильно не соответствует каким-то критериям , то ответ должен быть "нет"
+           В ответе выведи только "да" или "нет" в зависимости от выполнения условия
+            '''
+
+        elif current_scheme == 2:
+          changed_message = f'''Последняя реплика человека:{last_message}.
+            Сейчас ты находишься на третьем этапе. Сейчас вы работаете над написанием самого эссе. 
+            Проверь по последнему сообщению и истории- написал ли студент эссе полностью, включая заключение?
+             Исключение: если последнее сообщение все-таки является полностью написанным эссе, но сильно не соответствует каким-то критериям , то ответ должен быть "нет"
+           В ответе выведи только "да" или "нет" в зависимости от выполнения условия
+            '''
+        else:
+           return
+        messages_opt = list(messages)
+        messages_opt.append({"role": "user", "content": changed_message})
+        
+        
+        body = {
+            'model': 'gpt-4o',
+            'messages': messages_opt,
+        }
+
         response = requests.post(url=self.url, headers=self.header, json=body)
         if response.ok:
             reply = json.loads(response.json())["choices"][0]["message"]["content"]

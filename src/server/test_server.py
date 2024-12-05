@@ -39,19 +39,14 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket, client_id: int):
     await manager.connect(websocket)
     try:
-        virtual_tutor = DummyVirtualTutor(client_id)
+        virtual_tutor = VirtualTutor()
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data) 
             data_model = TypeAdapter(WssItem).validate_python(data_dict)
             actor_replic = virtual_tutor.generate_answer(data_model.content)
             
-            if data_model.type == 'chat':
-                virtual_tutor.logger_dialog.info(f"User: {data_model.content}")
-                virtual_tutor.logger_dialog.info(f"Tutor: {actor_replic}")
 
-            if data_model.type == 'essay':
-                virtual_tutor.logger_essay.info(data_model.content)
             
             data_model.content = actor_replic 
             await manager.send_personal_message(data_model.model_dump(), websocket)

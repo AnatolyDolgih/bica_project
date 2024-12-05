@@ -35,31 +35,62 @@ class DummyVirtualTutor:
 class VirtualTutor:
     def __init__(self):
         # список моральных схем
-        self.ms_list = [BaseMoralScheme(hlp.first_space, hlp.from1to2), 
-                        BaseMoralScheme(hlp.second_space, hlp.from2to3), 
-                        BaseMoralScheme(hlp.third_space)]
+        self.ms_list = [BaseMoralScheme(hlp.first_space, hlp.from1to2, feelings=hlp.feelings1), 
+                        BaseMoralScheme(hlp.second_space, hlp.from2to3, feelings=hlp.feelings2), 
+                        BaseMoralScheme(hlp.third_space, hlp.from3to4, feelings=hlp.feelings3),
+                        BaseMoralScheme(hlp.third_space, feelings=hlp.feelings4)]
         
         self.last_replic = ""
         self.prev_moral_id = 0
         self.cur_moral_id = 0
-        self.messages = [ {"role": "assistant", "content": hlp.start_promt} ]
-        self.schemes = [False, False, False]
+        self.messages = [ {"role": "assistant", "content": hlp.start_promt_dvt} ]
+        self.schemes = [False, False, False, False]
+        self.brain = [False, False, False, False]
 
     def generate_answer(self, replic):
         print(f'Сх: {self.schemes}') #Выводим состояние моральных схем
+        print(f'Br: {self.brain}') #Выводим состояние моральных схем
+
         intents = self.ms_list[self.cur_moral_id].get_base_intentions()        
         action = self.ms_list[self.cur_moral_id].oai_interface.get_composition(intents, replic)
+        print(action)
         self.ms_list[self.cur_moral_id].update_vectors(np.array(action))
 
-        appr = self.ms_list[self.cur_moral_id].get_appraisals()
-        feel = self.ms_list[self.cur_moral_id].get_feelings()
-        dist = self.ms_list[self.cur_moral_id].euc_dist(appr, feel)
+        appr_state = self.ms_list[self.cur_moral_id].get_appraisals_state()
+        feel_state = self.ms_list[self.cur_moral_id].get_feelings_state()
+        dist = self.ms_list[self.cur_moral_id].euc_dist(appr_state, feel_state)
+
+        print(f'appr:{self.ms_list[self.cur_moral_id].get_appraisals()}')
+        print(f'feel:{self.ms_list[self.cur_moral_id].get_feelings()}')
+        print(f'appr_state:{self.ms_list[self.cur_moral_id].get_appraisals_state()}')
+        print(f'feel_state:{self.ms_list[self.cur_moral_id].get_feelings_state()}')
+
+        diff = appr_state-feel_state
+
+        print(f'diff: {diff}')
 
         self.prev_moral_id = self.cur_moral_id
+
+
+        if self.cur_moral_id <=2:
+            condition = self.ms_list[self.cur_moral_id].oai_interface.get_brain_status(self.messages, replic, self.cur_moral_id)
+
+            print(f'cond: {condition}')
+
+            if "да" in condition.lower():
+                self.brain[self.cur_moral_id] = True
+                self.cur_moral_id = min(self.cur_moral_id + 1, 3 )
+
+
+
         if dist < 0.25: #проверка на превосходство крит. точки
             self.schemes[self.cur_moral_id] = True #Для начала ставим статус текущей схемы в тру
-            self.cur_moral_id = min(self.cur_moral_id + 1, 2 ) #переходим на след схему, 3 - это число сколько всего схем
-        reply = self.ms_list[self.cur_moral_id].oai_interface.get_replic(replic, self.messages, intents, feel, self.prev_moral_id, self.cur_moral_id) #генерируем овтет бота
+            ##self.cur_moral_id = min(self.cur_moral_id + 1, 2 ) #переходим на след схему, 3 - это число сколько всего схем
+        
+        print(f'cur: {self.cur_moral_id}')
+        print(f'prev: {self.prev_moral_id}')
+            
+        reply = self.ms_list[self.cur_moral_id].oai_interface.get_replic(replic, self.messages, intents, diff, self.prev_moral_id, self.cur_moral_id) #генерируем овтет бота
         self.messages.append({"role": "user", "content": replic}) #обновляем историю диалога
         self.messages.append({"role": "assistant", "content": reply}) #обновляем историю диалога       
-        return reply
+        return reply 
