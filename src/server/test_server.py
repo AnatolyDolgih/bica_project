@@ -35,26 +35,42 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-@app.websocket("/test/ws/{client_id}")
+@app.websocket("/test_1/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: int):
     await manager.connect(websocket)
     try:
-        virtual_tutor = VirtualTutor()
+        virtual_tutor = DummyVirtualTutor(client_id)
         while True:
             data = await websocket.receive_text()
             data_dict = json.loads(data) 
             data_model = TypeAdapter(WssItem).validate_python(data_dict)
             actor_replic = virtual_tutor.generate_answer(data_model.content)
-            
-
-            
+                        
             data_model.content = actor_replic 
             await manager.send_personal_message(data_model.model_dump(), websocket)
             
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
-app.mount("/test", StaticFilesWithoutCaching(directory="../ui", html=True), name="static")
+@app.websocket("/test_2/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: int):
+    await manager.connect(websocket)
+    try:
+        virtual_tutor = VirtualTutor(client_id)
+        while True:
+            data = await websocket.receive_text()
+            data_dict = json.loads(data) 
+            data_model = TypeAdapter(WssItem).validate_python(data_dict)
+            actor_replic = virtual_tutor.generate_answer(data_model.content)
+                        
+            data_model.content = actor_replic 
+            await manager.send_personal_message(data_model.model_dump(), websocket)
+            
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+app.mount("/test_1", StaticFilesWithoutCaching(directory="../ui_dummy", html=True), name="static")
+app.mount("/test_2", StaticFilesWithoutCaching(directory="../ui_moral", html=True), name="static")
 
 
 if __name__ == "__main__":

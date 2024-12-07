@@ -1,6 +1,6 @@
 const client_id = Date.now()
 
-let web_socket = new WebSocket(`ws://127.0.0.1:8000/test/ws/${client_id}`);
+let web_socket = new WebSocket(`ws://127.0.0.1:8000/test_2/ws/${client_id}`);
 // let web_socket = new WebSocket(`ws://bica-project.tw1.ru/test/ws/${client_id}`);
 
 web_socket.onopen = () => {
@@ -10,18 +10,29 @@ web_socket.onopen = () => {
 web_socket.onmessage = (event) => {
     const response = JSON.parse(event.data);
     console.log(response)
+    hideTypingIndicator()
     addMessage(response.content, false);
 };
 
 const dialogEditor = document.getElementById('dialogEditor');
 const essayEditor = document.getElementById('essayEditor');
 const chatMessages = document.getElementById('chatMessages');
+const typingIndicator = document.querySelector('.typing-indicator');
+
+function showTypingIndicator() {
+    typingIndicator.style.display = 'block';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    typingIndicator.style.display = 'none';
+}
 
 function addMessage(message, isUser = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isUser ? 'user' : 'tutor'}`;
     messageDiv.textContent = message;
-    chatMessages.appendChild(messageDiv);
+    chatMessages.insertBefore(messageDiv, typingIndicator);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
     
@@ -31,7 +42,7 @@ async function submitDialog() {
 
     addMessage(message, true);
     dialogEditor.value = '';
-
+    showTypingIndicator();
     try {
         if (web_socket.readyState === WebSocket.OPEN) {
             const data_dialog = {
@@ -43,12 +54,14 @@ async function submitDialog() {
             console.log(data_dialog.content)
         }
     } catch (error) {
+        hideTypingIndicator();
         console.error('Error submitting dialog:', error);
         alert('Error submitting dialog. Please try again.');
     }
 }
     
 async function submitEssay() {
+    showTypingIndicator();
     try {
         if (web_socket.readyState === WebSocket.OPEN) {
             const data_essay = {
@@ -60,17 +73,12 @@ async function submitEssay() {
             console.log(data_essay.content)
         }
     } catch (error) {
+        hideTypingIndicator();
         console.error('Error submitting essay:', error);
         alert('Error submitting essay. Please try again.');
     }
 }
     
-function showSaveAnimation(element) {
-    element.parentElement.classList.add('saving');
-    setTimeout(() => {
-        element.parentElement.classList.remove('saving');
-    }, 1000);
-}
     
 window.addEventListener('load', () => {
     addMessage('Здравствуйте! Я ваш виртуальный тьютор. Чем могу помочь?', false);

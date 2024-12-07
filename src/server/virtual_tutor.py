@@ -21,8 +21,8 @@ class DummyVirtualTutor:
         self.client_id = id
         self.messages = [ {"role": "system", "content": hlp.start_promt_dvt} ]
         self.oai_interface = Interface()
-        self.logger_dialog = create_logger(f"dialog_logger_{self.client_id}", f"../../logs/{self.client_id}", "dialog.log")
-        self.logger_essay = create_logger(f"essay_logger_{self.client_id}", f"../../logs/{self.client_id}", "essay.log")
+        self.logger_dialog = create_logger(f"dialog_logger_{self.client_id}", f"../../logs_dummy/{self.client_id}", "dialog.log")
+        self.logger_essay = create_logger(f"essay_logger_{self.client_id}", f"../../logs_dummy/{self.client_id}", "essay.log")
         
         self.logger_dialog.info("This is dialog log")
         self.logger_essay.info("This is essay log")
@@ -33,7 +33,14 @@ class DummyVirtualTutor:
         return tutor_response
 
 class VirtualTutor:
-    def __init__(self):
+    def __init__(self, id):
+        self.client_id = id
+        self.logger_dialog = create_logger(f"dialog_logger_{self.client_id}", f"../../logs_moral/{self.client_id}", "dialog.log")
+        self.logger_essay = create_logger(f"essay_logger_{self.client_id}", f"../../logs_moral/{self.client_id}", "essay.log")
+
+        self.logger_dialog.info("This is dialog log")
+        self.logger_essay.info("This is essay log")
+
         # список моральных схем
         self.ms_list = [BaseMoralScheme(hlp.first_space, hlp.from1to2, feelings=hlp.feelings1), 
                         BaseMoralScheme(hlp.second_space, hlp.from2to3, feelings=hlp.feelings2), 
@@ -48,26 +55,28 @@ class VirtualTutor:
         self.brain = [False, False, False, False]
 
     def generate_answer(self, replic):
-        print(f'Сх: {self.schemes}') #Выводим состояние моральных схем
-        print(f'Br: {self.brain}') #Выводим состояние моральных схем
+        self.logger_dialog.warning(f'Сх: {self.schemes}') #Выводим состояние моральных схем
+        self.logger_dialog.warning(f'Br: {self.brain}') #Выводим состояние моральных схем
 
         intents = self.ms_list[self.cur_moral_id].get_base_intentions()        
         action = self.ms_list[self.cur_moral_id].oai_interface.get_composition(intents, replic)
-        print(action)
+        if action is None:
+            return "Не удалось связаться с сервером"
+        self.logger_dialog.warning(action)
         self.ms_list[self.cur_moral_id].update_vectors(np.array(action))
 
         appr_state = self.ms_list[self.cur_moral_id].get_appraisals_state()
         feel_state = self.ms_list[self.cur_moral_id].get_feelings_state()
         dist = self.ms_list[self.cur_moral_id].euc_dist(appr_state, feel_state)
 
-        print(f'appr:{self.ms_list[self.cur_moral_id].get_appraisals()}')
-        print(f'feel:{self.ms_list[self.cur_moral_id].get_feelings()}')
-        print(f'appr_state:{self.ms_list[self.cur_moral_id].get_appraisals_state()}')
-        print(f'feel_state:{self.ms_list[self.cur_moral_id].get_feelings_state()}')
+        self.logger_dialog.warning(f'appr:{self.ms_list[self.cur_moral_id].get_appraisals()}')
+        self.logger_dialog.warning(f'feel:{self.ms_list[self.cur_moral_id].get_feelings()}')
+        self.logger_dialog.warning(f'appr_state:{self.ms_list[self.cur_moral_id].get_appraisals_state()}')
+        self.logger_dialog.warning(f'feel_state:{self.ms_list[self.cur_moral_id].get_feelings_state()}')
 
         diff = appr_state-feel_state
 
-        print(f'diff: {diff}')
+        self.logger_dialog.warning(f'diff: {diff}')
 
         self.prev_moral_id = self.cur_moral_id
 
@@ -75,7 +84,7 @@ class VirtualTutor:
         if self.cur_moral_id <=2:
             condition = self.ms_list[self.cur_moral_id].oai_interface.get_brain_status(self.messages, replic, self.cur_moral_id)
 
-            print(f'cond: {condition}')
+            self.logger_dialog.warning(f'cond: {condition}')
 
             if "да" in condition.lower():
                 self.brain[self.cur_moral_id] = True
@@ -87,8 +96,8 @@ class VirtualTutor:
             self.schemes[self.cur_moral_id] = True #Для начала ставим статус текущей схемы в тру
             ##self.cur_moral_id = min(self.cur_moral_id + 1, 2 ) #переходим на след схему, 3 - это число сколько всего схем
         
-        print(f'cur: {self.cur_moral_id}')
-        print(f'prev: {self.prev_moral_id}')
+        self.logger_dialog.warning(f'cur: {self.cur_moral_id}')
+        self.logger_dialog.warning(f'prev: {self.prev_moral_id}')
             
         reply = self.ms_list[self.cur_moral_id].oai_interface.get_replic(replic, self.messages, intents, diff, self.prev_moral_id, self.cur_moral_id) #генерируем овтет бота
         self.messages.append({"role": "user", "content": replic}) #обновляем историю диалога

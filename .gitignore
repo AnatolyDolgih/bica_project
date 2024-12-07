@@ -1,5 +1,7 @@
 /.bica
 /logs
+/logs_dummy
+/logs_moral
 /src/__pycache__
 /src/config.yaml
 /src/test_client.py

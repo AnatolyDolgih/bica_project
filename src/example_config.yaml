@@ -1,0 +1,25 @@
+# URL for proxy to OpenAI
+auth:
+  url: <your URL>
+  token: <your token>
+
+# Run mode:
+# "local" - run on local server
+# "server" - run on server
+run_mode: <your run mode>
+
+running:
+  local:
+    # local host
+    host: <your local host>
+    # local port
+    port: <your port in local host>
+    
+
+  server:
+    # server host
+    host: <your server host> (0.0.0.0)
+    # server port
+    port: <your port on server host>
+    # root for ws
+    ws_root: <your root for WebSockets>
